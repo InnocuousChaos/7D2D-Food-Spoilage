@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xml>
+	<ModInfo>
+		<Name value="BepInEx Mod Template" />
+		<Description value="BepInEx Mod Template" />
+		<Author value="InnoccuousChaos" />
+		<Version value="1.0.0.0" />
+	</ModInfo>
+</xml>

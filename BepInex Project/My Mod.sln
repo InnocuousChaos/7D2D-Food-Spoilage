@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My Mod Plugin", "BepInEx Plugin\My Mod Plugin.csproj", "{8D371305-2D06-47D3-8C02-2045D0008955}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My Mod Patcher", "BepInEx Patcher\My Mod Patcher.csproj", "{B15BA9F1-54D0-4BB7-B852-469915C0C137}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8D371305-2D06-47D3-8C02-2045D0008955}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D371305-2D06-47D3-8C02-2045D0008955}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D371305-2D06-47D3-8C02-2045D0008955}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D371305-2D06-47D3-8C02-2045D0008955}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B15BA9F1-54D0-4BB7-B852-469915C0C137}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B15BA9F1-54D0-4BB7-B852-469915C0C137}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B15BA9F1-54D0-4BB7-B852-469915C0C137}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B15BA9F1-54D0-4BB7-B852-469915C0C137}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {296EA10C-1729-4192-846F-7791EEC0F110}
+	EndGlobalSection
+EndGlobal
