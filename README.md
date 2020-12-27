@@ -1,1 +1,1 @@
-# 7D2D-BepInEx-Mod-Template
+# 7D2D Food Spoilage Mod
