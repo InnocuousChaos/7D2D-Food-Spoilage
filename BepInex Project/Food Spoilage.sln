@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My Mod Plugin", "BepInEx Plugin\My Mod Plugin.csproj", "{8D371305-2D06-47D3-8C02-2045D0008955}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Food Spoilage Plugin", "BepInEx Plugin\Food Spoilage Plugin.csproj", "{8D371305-2D06-47D3-8C02-2045D0008955}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My Mod Patcher", "BepInEx Patcher\My Mod Patcher.csproj", "{B15BA9F1-54D0-4BB7-B852-469915C0C137}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Food Spoilage Patcher", "BepInEx Patcher\Food Spoilage Patcher.csproj", "{B15BA9F1-54D0-4BB7-B852-469915C0C137}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
