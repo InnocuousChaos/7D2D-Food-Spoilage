@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Mono.Cecil;
 
 public static class Patcher
@@ -9,6 +10,9 @@ public static class Patcher
     // Patches the assemblies
     public static void Patch(AssemblyDefinition assembly)
     {
-        // Patcher code here
+        var gm = assembly.MainModule.Types.First(d => d.Name == "ItemValue");
+        var myTypeRef = gm.Fields.First(d => d.Name == "UseTimes");
+        gm.Fields.Add(new FieldDefinition("NextSpoilageTick", FieldAttributes.Public, myTypeRef.FieldType));
+        gm.Fields.Add(new FieldDefinition("CurrentSpoilage", FieldAttributes.Public, myTypeRef.FieldType));
     }
 }
