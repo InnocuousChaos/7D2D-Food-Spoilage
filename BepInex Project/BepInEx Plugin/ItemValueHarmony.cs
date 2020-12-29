@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using BepInEx;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,6 +49,7 @@ using UnityEngine;
  */
 public class SphereII_FoodSpoilage
 {
+
     [HarmonyPatch(typeof(ItemValue))]
     [HarmonyPatch("Read")]
     public class SphereII_itemValue_Read
@@ -143,8 +145,8 @@ public class SphereII_FoodSpoilage
 
         public static bool Prefix(XUiC_ItemStack __instance, bool ___bLocked, bool ___isDragAndDrop)
         {
-            //if (!Configuration.CheckFeatureStatus(AdvFeatureClass, Feature))
-            //    return true;
+            if (!FoodSpoilagePlugin.foodSpoilageEnabled.Value)
+                return true;
 
             // Make sure we are dealing with legitimate stacks.
             if (__instance.ItemStack.IsEmpty())
@@ -177,7 +179,7 @@ public class SphereII_FoodSpoilage
 
                 // Check if there's a Global Ticks Per Loss Set
                 BlockValue ConfigurationBlock = Block.GetBlockValue("ConfigFeatureBlock");
-                //TickPerLoss = int.Parse(Configuration.GetPropertyValue("FoodSpoilage", "TickPerLoss"));
+                TickPerLoss = FoodSpoilagePlugin.ticksPerLoss.Value;
 
                 // Check if there's a item-specific TickPerLoss
                 if (__instance.ItemStack.itemValue.ItemClass.Properties.Contains("TickPerLoss"))
@@ -209,13 +211,13 @@ public class SphereII_FoodSpoilage
                     switch (__instance.StackLocation)
                     {
                         case XUiC_ItemStack.StackLocationTypes.ToolBelt:  // Tool belt Storage check
-                            //containerValue = float.Parse(Configuration.GetPropertyValue("FoodSpoilage", "Toolbelt"));
+                            containerValue = FoodSpoilagePlugin.toolbeltPenalty.Value;
                             strDisplay += " Storage Type: Tool Belt ( " + containerValue + " )";
                             PerUse += containerValue;
 
                             break;
                         case XUiC_ItemStack.StackLocationTypes.Backpack:        // Back pack storage check
-                            //containerValue = float.Parse(Configuration.GetPropertyValue("FoodSpoilage", "Backpack"));
+                            containerValue = FoodSpoilagePlugin.backpackPenalty.Value;
                             strDisplay += " Storage Type: Backpack ( " + containerValue + " )";
                             PerUse += containerValue;
 
@@ -228,7 +230,7 @@ public class SphereII_FoodSpoilage
                                 String lootContainerName = Localization.Get(Block.list[Container.type].GetBlockName());
                                 strDisplay += " " + lootContainerName;
 
-                                //containerValue = float.Parse(Configuration.GetPropertyValue("FoodSpoilage", "Container"));
+                                containerValue = FoodSpoilagePlugin.containerPenalty.Value;
                                 strDisplay += " Storage Type: Container ( " + containerValue + " )";
                                 PerUse += containerValue;
 
@@ -248,7 +250,7 @@ public class SphereII_FoodSpoilage
                         case XUiC_ItemStack.StackLocationTypes.Creative:  // Ignore Creative Containers
                             return true;
                         default:
-                            //containerValue = float.Parse(Configuration.GetPropertyValue("FoodSpoilage", "Container"));
+                            containerValue = FoodSpoilagePlugin.containerPenalty.Value;
                             strDisplay += " Storage Type: Generic ( Default Container) ( " + containerValue + " )";
                             PerUse += containerValue;
                             break;
@@ -256,7 +258,7 @@ public class SphereII_FoodSpoilage
 
 
                     strDisplay += " Spoiled This Tick: " + (PerUse - BasePerUse);
-                    float MinimumSpoilage = 0; // float.Parse(Configuration.GetPropertyValue("FoodSpoilage", "MinimumSpoilage"));
+                    float MinimumSpoilage = FoodSpoilagePlugin.minimumSpoilage.Value;
                     MinimumSpoilage = Math.Max(0.1f, MinimumSpoilage);
 
                     // Worse case scenario, no matter what, Spoilage will increment.
@@ -268,7 +270,8 @@ public class SphereII_FoodSpoilage
                     // Calculate how many Spoils we may have missed over time. If we left our base and came back to our storage box, this will help accurately determine how much
                     // spoilage should apply.
                     String temp = "World Time: " + (int)GameManager.Instance.World.GetWorldTime() + " Minus NextSpoilageTick: " + __instance.ItemStack.itemValue.NextSpoilageTick + " Tick Per Loss: " + TickPerLoss;
-                    //AdvLogging.DisplayLog(AdvFeatureClass, temp);
+                    if (FoodSpoilagePlugin.enableLogging.Value)
+                        FoodSpoilagePlugin.Logger.LogInfo(temp);
 
                     int TotalSpoilageMultiplier = (int)(GameManager.Instance.World.GetWorldTime() - __instance.ItemStack.itemValue.NextSpoilageTick) / TickPerLoss;
                     if (TotalSpoilageMultiplier == 0)
@@ -281,7 +284,8 @@ public class SphereII_FoodSpoilage
 
                     strDisplay += " Next Spoilage Tick: " + (int)GameManager.Instance.World.GetWorldTime() + TickPerLoss;
                     strDisplay += " Recorded Spoilage: " + __instance.ItemStack.itemValue.CurrentSpoilage;
-                    //AdvLogging.DisplayLog(AdvFeatureClass, strDisplay);
+                    if (FoodSpoilagePlugin.enableLogging.Value)
+                        FoodSpoilagePlugin.Logger.LogInfo(strDisplay);
 
                     // Update the NextSpoilageTick value
                     __instance.ItemStack.itemValue.NextSpoilageTick = (int)GameManager.Instance.World.GetWorldTime() + TickPerLoss;
@@ -292,7 +296,7 @@ public class SphereII_FoodSpoilage
                     //if(DegradationMax <= __instance.ItemStack.itemValue.CurrentSpoilage)
                     {
                         // If not defined, set the foodRottingFlesh as a spoiled product. Otherwise use the global / item.
-                        String strSpoiledItem = "foodRottingFlesh";  //Configuration.GetPropertyValue("FoodSpoilage", "SpoiledItem");
+                        String strSpoiledItem = FoodSpoilagePlugin.spoiledItem.Value;
                         if (string.IsNullOrEmpty(strSpoiledItem))
                             strSpoiledItem = "foodRottingFlesh";
 
@@ -306,9 +310,10 @@ public class SphereII_FoodSpoilage
                         {
                             int Count = 1;
 
-                            if (true) //Configuration.CheckFeatureStatus(AdvFeatureClass, "FullStackSpoil"))
+                            if (FoodSpoilagePlugin.fullStackSpoil.Value)
                             {
-                                //AdvLogging.DisplayLog(AdvFeatureClass, __instance.ItemStack.itemValue.ItemClass.GetItemName() + ":Full Stack Spoil");
+                                if (FoodSpoilagePlugin.enableLogging.Value)
+                                    FoodSpoilagePlugin.Logger.LogInfo(__instance.ItemStack.itemValue.ItemClass.GetItemName() + ":Full Stack Spoil");
                                 Count = __instance.ItemStack.count;
                                 __instance.ItemStack = new ItemStack(ItemClass.GetItem(strSpoiledItem, false), Count);
                                 break;
@@ -327,13 +332,15 @@ public class SphereII_FoodSpoilage
 
                         if (__instance.ItemStack.count > 2)
                         {
-                            //AdvLogging.DisplayLog(AdvFeatureClass, __instance.ItemStack.itemValue.ItemClass.GetItemName() + ": Reducing Stack by 1");
+                            if (FoodSpoilagePlugin.enableLogging.Value)
+                                FoodSpoilagePlugin.Logger.LogInfo(__instance.ItemStack.itemValue.ItemClass.GetItemName() + ": Reducing Stack by 1");
                             __instance.ItemStack.count--;
                             __instance.ItemStack.itemValue.CurrentSpoilage -= DegradationMax;
                         }
                         else
                         {
-                            //AdvLogging.DisplayLog(AdvFeatureClass, __instance.ItemStack.itemValue.ItemClass.GetItemName() + ": Stack Depleted. Removing.");
+                            if (FoodSpoilagePlugin.enableLogging.Value)
+                                FoodSpoilagePlugin.Logger.LogInfo(__instance.ItemStack.itemValue.ItemClass.GetItemName() + ": Stack Depleted. Removing.");
                             __instance.ItemStack = new ItemStack(ItemValue.None.Clone(), 0);
                             break;  // Nothing more to spoil
                         }
@@ -347,72 +354,3 @@ public class SphereII_FoodSpoilage
         }
     }
 }
-
-public static class Configuration
-{
-    //public static bool CheckFeatureStatus(string strFeature)
-    //{
-    //    BlockValue ConfigurationFeatureBlock = Block.GetBlockValue("ConfigFeatureBlock");
-    //    if (ConfigurationFeatureBlock.type == 0)
-    //        return false;
-
-    //    bool result = false;
-    //    if (ConfigurationFeatureBlock.Block.Properties.Contains(strFeature))
-    //        result = ConfigurationFeatureBlock.Block.Properties.GetBool(strFeature);
-
-    //    return result;
-    //}
-
-
-    //public static bool CheckFeatureStatus(string strClass, string strFeature)
-    //{
-    //    BlockValue ConfigurationFeatureBlock = Block.GetBlockValue("ConfigFeatureBlock");
-    //    if (ConfigurationFeatureBlock.type == 0)
-    //    {
-    //        //   UnityEngine.Debug.Log("Feature Block not found: " + strClass + " " + strFeature);
-    //        return false;
-    //    }
-
-    //    bool result = false;
-    //    if (ConfigurationFeatureBlock.Block.Properties.Classes.ContainsKey(strClass))
-    //    {
-    //        DynamicProperties dynamicProperties3 = ConfigurationFeatureBlock.Block.Properties.Classes[strClass];
-    //        foreach (System.Collections.Generic.KeyValuePair<string, object> keyValuePair in dynamicProperties3.Values.Dict.Dict)
-    //            if (string.Equals(keyValuePair.Key, strFeature, System.StringComparison.CurrentCultureIgnoreCase))
-    //            {
-    //                result = StringParsers.ParseBool(dynamicProperties3.Values[keyValuePair.Key]);
-    //                //   UnityEngine.Debug.Log("Found: " + strClass + " " + strFeature + " : result: " + result);
-    //            }
-    //    }
-
-    //    return result;
-    //}
-
-    //public static string GetPropertyValue(string strClass, string strFeature)
-    //{
-    //    BlockValue ConfigurationFeatureBlock = Block.GetBlockValue("ConfigFeatureBlock");
-    //    if (ConfigurationFeatureBlock.type == 0)
-    //        return string.Empty;
-
-    //    string result = string.Empty;
-    //    if (ConfigurationFeatureBlock.Block.Properties.Classes.ContainsKey(strClass))
-    //    {
-    //        DynamicProperties dynamicProperties3 = ConfigurationFeatureBlock.Block.Properties.Classes[strClass];
-    //        foreach (KeyValuePair<string, object> keyValuePair in dynamicProperties3.Values.Dict.Dict)
-    //        {
-    //            if (keyValuePair.Key == strFeature)
-    //                return keyValuePair.Value.ToString();
-    //        }
-    //    }
-    //    return result;
-    //}
-}
-
-//public static class AdvLogging
-//{
-//    public static void DisplayLog(string AdvFeatureClass, string strDisplay)
-//    {
-//        if (Configuration.CheckFeatureStatus(AdvFeatureClass, "Logging"))
-//            Debug.Log(AdvFeatureClass + " :: " + strDisplay);
-//    }
-//}
